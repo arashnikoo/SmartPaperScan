@@ -163,9 +163,13 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                     mat.release()
-                    SourceManager.corners = processPicture(pic)
-                    Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    SourceManager.pic = pic
+                    val corner =  processPicture(pic)
+                    if (null != corner && corner.corners.size == 4) {
+                        SourceManager.corners = corner
+                        Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
+                        SourceManager.pic = pic
+                    }
+
                     context.startActivity(Intent(context, CropActivity::class.java))
                     busy = false
                 }
@@ -207,6 +211,9 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                         busy = false
                         if (null != corner && corner.corners.size == 4) {
                             it.onNext(corner)
+                            SourceManager.corners = corner
+                            Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2BGRA)
+                            SourceManager.pic = img
                         } else {
                             it.onError(Throwable("paper not detected"))
                         }
